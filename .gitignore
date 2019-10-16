@@ -7,6 +7,9 @@ lib-cov
 *.pid
 *.gz
 *.swp
+.data
+starter.env
+gcr.json
 
 pids
 logs

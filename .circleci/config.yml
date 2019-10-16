@@ -23,8 +23,7 @@ jobs:
 
   build-and-push-image:
     working_directory: ~/typescript-node-starter
-    docker:
-      - image: ubuntu:xenial
+    machine: true
     steps:
       - checkout
       - gcr/gcr-auth

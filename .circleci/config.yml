@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  gcp-gcr: circleci/gcp-gcr@0.6.1
+  gcr: circleci/gcp-gcr@0.6.1
 
 jobs:
   test:
@@ -21,22 +21,26 @@ jobs:
           name: run tests
           command: npm test
 
-  gcp-gcr/build-and-push-image:
+  build-and-push-image:
     working_directory: ~/typescript-node-starter
     docker:
-      image: ubuntu:xenial
-    context: myContext
-    image: typescript-node-starter
-    registry-url: gcr.io
+      - image: ubuntu:xenial
+    steps:
+      - checkout
+      - gcr/gcr-auth
+      - gcr/build-image:
+          image: typescript-node-starter
+          registry-url: gcr.io
+      - gcr/push-image:
+          image: typescript-node-starter
+          registry-url: gcr.io
 
 workflows:
   version: 2.1
-  orbs:
-    gcp-gcr: circleci/gcp-gcr@0.6.1
   build-and-push-image:
     jobs:
       - test
-      - gcp-gcr/build-and-push-image:
+      - build-and-push-image:
           requires:
             - test
           filters:

@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   gcr: circleci/gcp-gcr@0.6.1
+  gke: circleci/gcp-gke@0.1.0
 
 jobs:
   test:
@@ -34,6 +35,16 @@ jobs:
           image: typescript-node-starter
           registry-url: gcr.io
 
+  deploy-to-staging:
+    machine: true
+    steps:
+      - gke/install
+      - gke/init
+      - gke/rollout-image:
+          deployment: typescript-starter-staging-cluster
+          image: gcr.io/max-infrastructure/ts-node-starter:latest
+          container: ts-node-starter
+
 workflows:
   version: 2.1
   build-and-push-image:
@@ -42,6 +53,9 @@ workflows:
       - build-and-push-image:
           requires:
             - test
+      - deploy-to-staging:
+          requires:
+            - build-and-push-image
           filters:
             branches:
               only: ci/cd

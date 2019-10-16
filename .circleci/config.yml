@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   gcr: circleci/gcp-gcr@0.6.1
-  gke: circleci/gcp-gke@0.1.0
+  gke: circleci/gcp-gke@0.2.0
 
 jobs:
   test:
@@ -41,7 +41,8 @@ jobs:
       - gke/install
       - gke/init
       - gke/rollout-image:
-          deployment: typescript-starter-staging-cluster
+          cluster: typescript-starter-staging-cluster
+          deployment: ts-node-starter
           image: gcr.io/max-infrastructure/ts-node-starter:latest
           container: ts-node-starter
 

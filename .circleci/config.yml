@@ -2,6 +2,7 @@ version: 2.1
 orbs:
   gcr: circleci/gcp-gcr@0.6.1
   gke: circleci/gcp-gke@0.2.0
+  helm: circleci/helm@0.2.0
 
 jobs:
   test:
@@ -46,6 +47,21 @@ jobs:
           image: gcr.io/max-infrastructure/ts-node-starter:latest
           container: ts-node-starter
 
+  deploy-to-staging-helm:
+    machine: true
+    steps:
+      - gke/install
+      - gke/init
+      - run:
+          name: Install and configuire helm
+          command: sudo curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz | tar xz && sudo mv linux-amd64/helm /bin/helm && sudo rm -rf linux-amd64
+      - run:
+          name: Initialize helm
+          command:  helm init --client-only --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Install tiller plugin
+          command: helm plugin install https://github.com/rimusz/helm-tiller --kubeconfig=$HOME/.kube/kubeconfig
+
 workflows:
   version: 2.1
   build-and-push-image:
@@ -54,7 +70,7 @@ workflows:
       - build-and-push-image:
           requires:
             - test
-      - deploy-to-staging:
+      - deploy-to-staging-helm:
           requires:
             - build-and-push-image
           filters:

@@ -32,11 +32,14 @@ jobs:
       - gcr/build-image:
           image: typescript-node-starter
           registry-url: gcr.io
+          tag: ${CIRCLE_BUILD_NUM}
       - gcr/push-image:
           image: typescript-node-starter
           registry-url: gcr.io
+          tag: ${CIRCLE_BUILD_NUM}
 
   deploy-to-staging:
+    working_directory: ~/typescript-node-starter
     machine: true
     steps:
       - gke/install
@@ -50,6 +53,7 @@ jobs:
   deploy-to-staging-helm:
     machine: true
     steps:
+      - checkout
       - gke/install
       - gke/init
       - run:
@@ -61,15 +65,19 @@ jobs:
       - run:
           name: Install tiller plugin
           command: helm plugin install https://github.com/rimusz/helm-tiller --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Release app using helm chart 
+          shell: /bin/sh
+          command: |
+            ls
+            chmod +x ./release-app.sh
+            . ./release-app.sh ${CIRCLE_BUILD_NUM}
 
 workflows:
   version: 2.1
   build-and-push-image:
     jobs:
-      - test
-      - build-and-push-image:
-          requires:
-            - test
+      - build-and-push-image
       - deploy-to-staging-helm:
           requires:
             - build-and-push-image

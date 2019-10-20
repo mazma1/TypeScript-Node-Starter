@@ -11,9 +11,9 @@ helm tiller start-ci
 result=$(helm ls | grep $APP) 
 
 if [ $? -ne "0" ]; then 
-   helm install --timeout 180 --name $APP --set image.tag=$TAG charts/ts-node-starter-chart
+   helm install --timeout 180 --name $APP --set image.tag=$TAG ts-node-starter-chart
 else 
-   helm upgrade --timeout 180 $APP --set image.tag=$TAG charts/ts-node-starter-chart
+   helm upgrade --timeout 180 $APP --set image.tag=$TAG ts-node-starter-chart
 fi
 
 echo "Stoping Tiller..."

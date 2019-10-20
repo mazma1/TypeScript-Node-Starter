@@ -2,12 +2,13 @@
 TAG=$1
 APP="node-starter-app"
 
-export HELM_HOST=127.0.0.1:44134
 export KUBECONFIG=$HOME/.kube/kubeconfig
 
 echo "Starting Tiller..."
 
 helm tiller start-ci
+export HELM_HOST=127.0.0.1:44134
+
 result=$(helm ls | grep $APP) 
 
 if [ $? -ne "0" ]; then 

@@ -1,29 +1,20 @@
 #!/bin/bash
 TAG=$1
-APP="node-starter-app"
-
+RELEASE_NAME="node-starter-app-release"
 export KUBECONFIG=$HOME/.kube/kubeconfig
 
 echo "Starting Tiller..."
 
-echo "${TAG}, <==="
-
-# kubectl create serviceaccount --namespace kube-system tiller
-# kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-# kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
-
 helm tiller start-ci
-
 export HELM_HOST=127.0.0.1:44134
-
-helm version
-
-result=$(helm ls | grep $APP) 
+result=$(helm ls | grep $RELEASE_NAME) 
 
 if [ $? -ne "0" ]; then 
-   helm install --timeout 180 --name $APP --set image.tag=$TAG ts-node-starter-chart
-else 
-   helm upgrade --timeout 180 $APP --set image.tag=$TAG ts-node-starter-chart
+   echo 'running helm install'
+   helm install --timeout 180 --name $RELEASE_NAME --values ../ts-node-starter-chart/values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
+else
+   echo 'running helm upgrade'
+   helm upgrade --timeout 180 $RELEASE_NAME --values ../ts-node-starter-chart/values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
 fi
 
 echo "Stoping Tiller..."

@@ -10,6 +10,7 @@ lib-cov
 .data
 starter.env
 gcr.json
+k8s/
 
 pids
 logs

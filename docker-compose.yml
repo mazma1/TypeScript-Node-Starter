@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+      - "27018:27018"
+    volumes:
+      - ./.data/mongodb:/data/db
+    command: mongod --bind_ip_all
+
+  ts-node-starter:
+    image: gcr.io/max-infrastructure/ts-node-starter
+    ports:
+      - "3000:3000"
+    env_file: ./starter.env
+    depends_on:
+    - mongo

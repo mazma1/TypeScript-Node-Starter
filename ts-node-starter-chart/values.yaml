@@ -5,7 +5,7 @@
 replicaCount: 1
 
 app:
-  name: ts-node-starter
+  name: ts-node-starter-app
 
 image:
   repository: gcr.io/max-infrastructure/typescript-node-starter
@@ -13,7 +13,7 @@ image:
   pullPolicy: Always
 
 service:
-  name: ts-node-starter
+  name: ts-node-starter-service
   type: ClusterIP
   externalPort: 3000
   internalPort: 3000

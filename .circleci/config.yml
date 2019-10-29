@@ -47,7 +47,7 @@ jobs:
       - gke/rollout-image:
           cluster: typescript-starter-staging-cluster
           deployment: ts-node-starter
-          image: gcr.io/max-infrastructure/ts-node-starter:latest
+          image: gcr.io/max-infrastructure/typescript-node-starter:latest
           container: ts-node-starter
 
   deploy-to-staging-helm:
@@ -56,6 +56,9 @@ jobs:
       - checkout
       - gke/install
       - gke/init
+      - run:
+          name: Set the tag for the image, we will concatenate the app verson and circle build number with a `-` char in between
+          command:  echo 'export TAG=$CIRCLE_PREVIOUS_BUILD_NUM' >> $BASH_ENV
       - run:
           name: Get the kubeconfig file 
           command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_STAGING_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}
@@ -69,12 +72,10 @@ jobs:
           name: Install tiller plugin
           command: helm plugin install https://github.com/rimusz/helm-tiller --kubeconfig=$HOME/.kube/kubeconfig
       - run:
-          name: Release app using helm chart 
-          shell: /bin/sh
+          name: Release app using helm chart
           command: |
-            ls
             chmod +x ./release-app.sh
-            . ./release-app.sh ${CIRCLE_BUILD_NUM}
+            bash ./release-app.sh $TAG
 
 workflows:
   version: 2.1

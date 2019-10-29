@@ -8,7 +8,7 @@ app:
   name: ts-node-starter
 
 image:
-  repository: gcr.io/max-infrastructure/ts-node-starter
+  repository: gcr.io/max-infrastructure/typescript-node-starter
   tag: latest
   pullPolicy: Always
 

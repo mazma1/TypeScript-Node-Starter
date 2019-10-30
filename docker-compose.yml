@@ -11,7 +11,7 @@ services:
     command: mongod --bind_ip_all
 
   ts-node-starter:
-    image: gcr.io/max-infrastructure/ts-node-starter
+    image: gcr.io/max-infrastructure/typescript-node-starter
     ports:
       - "3000:3000"
     env_file: ./starter.env

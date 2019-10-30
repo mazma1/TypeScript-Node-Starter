@@ -5,6 +5,7 @@ RELEASE_NAME="node-starter-app-prod-release"
 export KUBECONFIG=$HOME/.kube/kubeconfig
 
 echo "Starting Tiller..."
+echo "${TAG}, <-===== script"
 
 helm tiller start-ci
 export HELM_HOST=127.0.0.1:44134

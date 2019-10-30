@@ -16,6 +16,10 @@ pids
 logs
 results
 tmp
+k8s/
+.data/
+gcr.json
+starter.env
 
 # Build
 public/css/main.css

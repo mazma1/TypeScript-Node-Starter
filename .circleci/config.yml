@@ -88,6 +88,7 @@ jobs:
           command: |
             export TAG=$(gcloud container images list-tags ${IMAGES_REPO} --limit=1 | sed -n 2p | awk '{print $2}')
             echo "${TAG}, <-====="
+            echo "export $TAG" >> $BASH_ENV
       - run:
           name: Get the kubeconfig file 
           command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_PROD_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}

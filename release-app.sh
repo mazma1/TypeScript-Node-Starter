@@ -1,4 +1,5 @@
 #!/bin/bash
+
 TAG=$1
 RELEASE_NAME="node-starter-app-release"
 export KUBECONFIG=$HOME/.kube/kubeconfig

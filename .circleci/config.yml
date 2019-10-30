@@ -86,7 +86,7 @@ jobs:
       - run:
           name: Set the tag for the image
           command: |
-            export TAG=$(gcloud container images list-tags ${IMAGES_REPO} --limit=1 | sed -n 2p | awk '{print $2}')
+            TAG=$(gcloud container images list-tags ${IMAGES_REPO} --limit=1 | sed -n 2p | awk '{print $2}')
             echo "${TAG}, <-====="
             echo "export $TAG" >> $BASH_ENV
       - run:

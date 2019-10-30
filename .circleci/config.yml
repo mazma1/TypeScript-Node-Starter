@@ -74,8 +74,8 @@ jobs:
       - run:
           name: Release app using helm chart
           command: |
-            chmod +x ./release-app.sh
-            bash ./release-app.sh $TAG
+            chmod +x ./release-app-staging.sh
+            bash ./release-app-staging.sh $TAG
 
   deploy-to-prod-helm:
     machine: true
@@ -85,10 +85,12 @@ jobs:
       - gke/init
       - run:
           name: Set the tag for the image, we will concatenate the app verson and circle build number with a `-` char in between
-          command:  echo 'export TAG=$CIRCLE_PREVIOUS_BUILD_NUM' >> $BASH_ENV
+          command: |
+            TAG=$(gcloud container images list-tags ${IMAGES_REPO} --limit=1 | sed -n 2p | awk '{print $2}')
+            echo 'export $TAG' >> $BASH_ENV
       - run:
           name: Get the kubeconfig file 
-          command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_STAGING_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}
+          command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_PROD_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}
       - run:
           name: Install and configuire helm
           command: sudo curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz | tar xz && sudo mv linux-amd64/helm /usr/local/bin/helm && sudo rm -rf linux-amd64
@@ -101,8 +103,8 @@ jobs:
       - run:
           name: Release app using helm chart
           command: |
-            chmod +x ./release-app.sh
-            bash ./release-app.sh $TAG
+            chmod +x ./release-app-prod.sh
+            bash ./release-app-prod.sh $TAG
 
 workflows:
   version: 2.1

@@ -5,8 +5,6 @@ RELEASE_NAME="node-starter-app-release"
 export KUBECONFIG=$HOME/.kube/kubeconfig
 
 echo "Starting Tiller..."
-pwd
-ls ./ts-node-starter-chart
 
 helm tiller start-ci
 export HELM_HOST=127.0.0.1:44134

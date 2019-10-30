@@ -35,10 +35,10 @@ spec:
                 configMapKeyRef:
                   key: FACEBOOK_SECRET
                   name: ts-node-starter-starter-env
-            - name: MONGODB_URI_LOCAL
+            - name: {{ .Values.mongo.url }}
               valueFrom:
                 configMapKeyRef:
-                  key: MONGODB_URI_LOCAL
+                  key: {{ .Values.mongo.url }}
                   name: ts-node-starter-starter-env
             - name: SESSION_SECRET
               valueFrom:

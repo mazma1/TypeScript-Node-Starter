@@ -11,10 +11,10 @@ result=$(helm ls | grep $RELEASE_NAME)
 
 if [ $? -ne "0" ]; then 
    echo 'running helm install'
-   helm install --timeout 180 --name $RELEASE_NAME --values ./ts-node-starter-chart/values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
+   helm install --timeout 180 --name $RELEASE_NAME --values values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
 else
    echo 'running helm upgrade'
-   helm upgrade --timeout 180 $RELEASE_NAME --values ./ts-node-starter-chart/values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
+   helm upgrade --timeout 180 $RELEASE_NAME --values values-staging.yaml --set image.tag=$TAG ts-node-starter-chart
 fi
 
 echo "Stoping Tiller..."

@@ -1,0 +1,131 @@
+version: 2.1
+orbs:
+  gcr: circleci/gcp-gcr@0.6.1
+  gke: circleci/gcp-gke@0.2.0
+  helm: circleci/helm@0.2.0
+
+jobs:
+  test:
+    working_directory: ~/typescript-node-starter
+    docker:
+      - image: circleci/node:10.15.3
+      - image: mongo
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: run tests
+          command: npm test
+
+  build-and-push-image:
+    working_directory: ~/typescript-node-starter
+    machine: true
+    steps:
+      - checkout
+      - gcr/gcr-auth
+      - gcr/build-image:
+          image: typescript-node-starter
+          registry-url: gcr.io
+          tag: ${CIRCLE_BUILD_NUM}
+      - gcr/push-image:
+          image: typescript-node-starter
+          registry-url: gcr.io
+          tag: ${CIRCLE_BUILD_NUM}
+
+  deploy-to-staging:
+    working_directory: ~/typescript-node-starter
+    machine: true
+    steps:
+      - gke/install
+      - gke/init
+      - gke/rollout-image:
+          cluster: typescript-starter-staging-cluster
+          deployment: ts-node-starter
+          image: gcr.io/max-infrastructure/typescript-node-starter:latest
+          container: ts-node-starter
+
+  deploy-to-staging-helm:
+    machine: true
+    steps:
+      - checkout
+      - gke/install
+      - gke/init
+      - run:
+          name: Set the tag for the image, we will concatenate the app verson and circle build number with a `-` char in between
+          command:  echo 'export TAG=$CIRCLE_PREVIOUS_BUILD_NUM' >> $BASH_ENV
+      - run:
+          name: Get the kubeconfig file 
+          command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_STAGING_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}
+      - run:
+          name: Install and configuire helm
+          command: sudo curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz | tar xz && sudo mv linux-amd64/helm /usr/local/bin/helm && sudo rm -rf linux-amd64
+      - run:
+          name: Initialize helm
+          command:  helm init --client-only --service-account default --history-max 100 --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Install tiller plugin
+          command: helm plugin install https://github.com/rimusz/helm-tiller --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Release app using helm chart
+          command: |
+            chmod +x ./release-app-staging.sh
+            bash ./release-app-staging.sh $TAG
+
+  deploy-to-prod-helm:
+    machine: true
+    steps:
+      - checkout
+      - gke/install
+      - gke/init
+      - run:
+          name: Set the tag for the image, we will concatenate the app verson and circle build number with a `-` char in between
+          command: |
+            TAG=$(gcloud container images list-tags ${IMAGES_REPO} --limit=1 | sed -n 2p | awk '{print $2}')
+            echo 'export $TAG' >> $BASH_ENV
+      - run:
+          name: Get the kubeconfig file 
+          command: export KUBECONFIG=$HOME/.kube/kubeconfig && gcloud container clusters get-credentials ${K8S_PROD_CLUSTER} --zone ${GOOGLE_COMPUTE_ZONE} --project ${K8S_PROJECT}
+      - run:
+          name: Install and configuire helm
+          command: sudo curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz | tar xz && sudo mv linux-amd64/helm /usr/local/bin/helm && sudo rm -rf linux-amd64
+      - run:
+          name: Initialize helm
+          command:  helm init --client-only --service-account default --history-max 100 --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Install tiller plugin
+          command: helm plugin install https://github.com/rimusz/helm-tiller --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Release app using helm chart
+          command: |
+            chmod +x ./release-app-prod.sh
+            bash ./release-app-prod.sh $TAG
+
+workflows:
+  version: 2.1
+  test-build-and-deploy:
+    jobs:
+      - test
+      - build-and-push-image:
+          requires:
+            - test
+          filters:
+            branches:
+              only: ci/staging
+      - deploy-to-staging-helm:
+          requires:
+            - build-and-push-image
+          filters:
+            branches:
+              only: ci/staging
+      - deploy-to-prod-helm:
+          requires:
+            - test
+          filters:
+            branches:
+              only: ci/prod
